@@ -1,0 +1,66 @@
+/* General body styling */
+body {
+    font-family: Arial, sans-serif;
+}
+
+/* Gameboard styling */
+#gameboard {
+    display: grid;
+    grid-template-columns: repeat(8, 80px); /* Increase size to 80px */
+    grid-template-rows: repeat(8, 80px); /* Increase size to 80px */
+    gap: 2px;
+}
+
+/* Square styling */
+.square {
+    width: 80px; /* Increase size to 80px */
+    height: 80px; /* Increase size to 80px */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative; /* Allow positioning */
+}
+
+.square svg {
+    height: 70px; /* Increase SVG size */
+    width: 70px; /* Increase SVG size */
+    margin: 5px;
+    position: relative; /* Allow positioning */
+    z-index: -9; /* Set z-index */
+}
+
+/* Styling for the path within SVGs */
+path {
+    position: relative; /* Allow positioning */
+    z-index: -10; /* Set z-index */
+}
+
+/* Styling for the piece class */
+.piece {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative; /* Allow positioning */
+    z-index: 9; /* Set z-index */
+}
+
+/* Styling for black squares */
+.square.black {
+    background-color: #000000;
+}
+
+/* Styling for silver squares */
+.square.silver {
+    background-color: #4c5061;
+}
+
+/* Piece colors */
+.purple {
+    fill: rgb(61, 13, 233);
+}
+
+.white {
+    fill: white; /* Apply the white fill color to pieces */
+}
