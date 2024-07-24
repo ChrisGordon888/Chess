@@ -1,6 +1,13 @@
 /* General body styling */
 body {
     font-family: Arial, sans-serif;
+    background: linear-gradient(to bottom right, #1e1e1e, #3e3e3e); /* Gradient background */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
 }
 
 /* Gameboard styling */
@@ -9,6 +16,7 @@ body {
     grid-template-columns: repeat(8, 80px); /* Increase size to 80px */
     grid-template-rows: repeat(8, 80px); /* Increase size to 80px */
     gap: 2px;
+    margin-bottom: 20px; /* Add some space below the board */
 }
 
 /* Square styling */
@@ -63,4 +71,18 @@ path {
 
 .white {
     fill: white; /* Apply the white fill color to pieces */
+}
+
+/* Info display styling */
+#info-display {
+    color: white; /* Text color */
+    font-size: 20px; /* Text size */
+    margin-top: 10px; /* Space above the text */
+    text-align: center; /* Center align the text */
+}
+
+/* Player display styling */
+#player {
+    color: white; /* Text color */
+    font-size: 20px; /* Text size */
 }
