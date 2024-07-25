@@ -1,12 +1,28 @@
 // Select the gameboard and player display elements from the DOM
 const gameBoard = document.querySelector("#gameboard");
 const playerDisplay = document.querySelector("#player");
-const infoDisplay = document.createElement("div");
-document.body.append(infoDisplay);
+const infoDisplay = document.querySelector("#info-display");
+const player1Lifepoints = document.querySelector("#player1-lifepoints");
+const player2Lifepoints = document.querySelector("#player2-lifepoints");
+const player1TimerDisplay = document.querySelector("#player1-timer");
+const player2TimerDisplay = document.querySelector("#player2-timer");
+const moveTimerDisplay = document.querySelector("#move-timer");
+const startButton = document.querySelector("#start-button");
+const restartButton = document.querySelector("#restart-button");
 const width = 8; // Define the width of the chessboard (8x8)
 
 let playerGo = 'purple';
-playerDisplay.textContent = 'purple';
+let player1LifepointsCount = 100;
+let player2LifepointsCount = 100;
+let player1Timer = 60; // 1 minute
+let player2Timer = 60; // 1 minute
+let moveTimer = 9; // 9 seconds per move
+let moveCount = 0; // Track the number of 9-second cycles
+let player1Interval, player2Interval, moveInterval;
+
+playerDisplay.textContent = `It's ${playerGo}'s turn`;
+playerDisplay.style.fontSize = '24px';
+playerDisplay.style.color = playerGo === 'purple' ? 'purple' : 'white';
 
 // Define the starting positions of the pieces with proper classes for kings
 const startPieces = [
@@ -112,6 +128,7 @@ function dragDrop(e) {
             console.log('dragDrop -> Capturing piece:', target.firstChild);
             if (target.firstChild.classList.contains(playerGo === 'purple' ? 'white' : 'purple')) {
                 target.removeChild(target.firstChild); // Capture the piece
+                deductLifePointsForCapture();
             } else {
                 infoDisplay.textContent = "Invalid capture";
                 setTimeout(() => infoDisplay.textContent = "", 2000);
@@ -120,11 +137,41 @@ function dragDrop(e) {
         }
         target.appendChild(draggedElement);
         console.log('dragDrop -> Piece moved');
+        moveCount = 0; // Reset move count
         changePlayer();
         checkForWin(); // Call checkForWin after the player changes
     } else {
         infoDisplay.textContent = "Invalid move";
         setTimeout(() => infoDisplay.textContent = "", 2000);
+    }
+}
+
+function deductLifePointsForCapture() {
+    const pieceValue = getPieceValue(draggedElement.id);
+    if (playerGo === 'purple') {
+        player2LifepointsCount -= pieceValue;
+    } else {
+        player1LifepointsCount -= pieceValue;
+    }
+    updateDisplays();
+    checkForWin();
+}
+
+function getPieceValue(piece) {
+    switch (piece) {
+        case 'pawn':
+            return 7;
+        case 'knight':
+        case 'bishop':
+            return 10;
+        case 'rook':
+            return 15;
+        case 'queen':
+            return 20;
+        case 'king':
+            return 100;
+        default:
+            return 0;
     }
 }
 
@@ -223,7 +270,10 @@ function checkIfValid(targetId) {
 
 function changePlayer() {
     playerGo = playerGo === "purple" ? "white" : "purple";
-    playerDisplay.textContent = playerGo;
+    playerDisplay.textContent = `It's ${playerGo}'s turn`;
+    playerDisplay.style.color = playerGo === 'purple' ? 'purple' : 'white';
+    moveCount = 0; // Reset move count
+    resetMoveTimer();
 }
 
 function checkForWin() {
@@ -236,26 +286,117 @@ function checkForWin() {
     if (!whiteKing) {
         infoDisplay.innerHTML = "Purple Player Wins!";
         console.log("Purple Player Wins!");
-        const allSquares = document.querySelectorAll('.square');
-        allSquares.forEach(square => square.firstChild?.setAttribute('draggable', false));
-        setTimeout(resetGame, 3000); // Auto-reset after 3 seconds
+        endGame();
     }
     if (!purpleKing) {
         infoDisplay.innerHTML = "White Player Wins!";
         console.log("White Player Wins!");
-        const allSquares = document.querySelectorAll('.square');
-        allSquares.forEach(square => square.firstChild?.setAttribute('draggable', false));
-        setTimeout(resetGame, 3000); // Auto-reset after 3 seconds
+        endGame();
+    }
+
+    if (player1LifepointsCount <= 0 || player2LifepointsCount <= 0) {
+        const winner = player1LifepointsCount > player2LifepointsCount ? "Purple Player" : "White Player";
+        infoDisplay.innerHTML = `${winner} Wins!`;
+        console.log(`${winner} Wins!`);
+        endGame();
     }
 }
 
 function resetGame() {
     console.log("Resetting game");
-    gameBoard.innerHTML = ''; // Clear the game board
+    clearInterval(player1Interval);
+    clearInterval(player2Interval);
+    clearInterval(moveInterval);
+    player1Timer = 60;
+    player2Timer = 60;
+    moveTimer = 9;
+    player1LifepointsCount = 100;
+    player2LifepointsCount = 100;
+    updateDisplays();
     createBoard(); // Recreate the board
     playerGo = 'purple'; // Reset the player turn
-    playerDisplay.textContent = 'purple'; // Update the display
+    playerDisplay.textContent = `It's ${playerGo}'s turn`;
+    playerDisplay.style.color = 'purple';
+    startButton.style.display = 'inline-block';
+    restartButton.style.display = 'none';
     console.log("Game reset completed");
 }
+
+function endGame() {
+    clearInterval(player1Interval);
+    clearInterval(player2Interval);
+    clearInterval(moveInterval);
+    const allSquares = document.querySelectorAll('.square');
+    allSquares.forEach(square => square.firstChild?.setAttribute('draggable', false));
+}
+
+function startGame() {
+    startButton.style.display = 'none';
+    restartButton.style.display = 'inline-block';
+    startTimers();
+    resetMoveTimer();
+}
+
+function startTimers() {
+    player1Interval = setInterval(() => {
+        if (playerGo === 'purple') {
+            player1Timer--;
+            if (player1Timer <= 0) {
+                player1LifepointsCount -= 33;
+                checkForWin();
+                player1Timer = 60; // Reset timer to 1 minute
+            }
+        }
+        updateDisplays();
+    }, 1000);
+
+    player2Interval = setInterval(() => {
+        if (playerGo === 'white') {
+            player2Timer--;
+            if (player2Timer <= 0) {
+                player2LifepointsCount -= 33;
+                checkForWin();
+                player2Timer = 60; // Reset timer to 1 minute
+            }
+        }
+        updateDisplays();
+    }, 1000);
+}
+
+function resetMoveTimer() {
+    clearInterval(moveInterval);
+    moveTimer = 9;
+    moveInterval = setInterval(() => {
+        moveTimer--;
+        moveTimerDisplay.textContent = `Move Timer: ${moveTimer}`;
+        if (moveTimer <= 0) {
+            moveCount++;
+            if (playerGo === 'purple') {
+                player1LifepointsCount -= 7;
+            } else {
+                player2LifepointsCount -= 7;
+            }
+            if (moveCount >= 3) {
+                moveCount = 0; // Reset move count
+                changePlayer();
+            }
+            moveTimer = 9; // Reset move timer
+            checkForWin();
+            updateDisplays();
+        }
+    }, 1000);
+}
+
+function updateDisplays() {
+    player1Lifepoints.textContent = `Lifepoints: ${player1LifepointsCount}`;
+    player2Lifepoints.textContent = `Lifepoints: ${player2LifepointsCount}`;
+    player1TimerDisplay.textContent = `Timer: ${Math.floor(player1Timer / 60)}:${String(player1Timer % 60).padStart(2, '0')}`;
+    player2TimerDisplay.textContent = `Timer: ${Math.floor(player2Timer / 60)}:${String(player2Timer % 60).padStart(2, '0')}`;
+}
+
+startButton.addEventListener('click', startGame);
+restartButton.addEventListener('click', resetGame);
+
+updateDisplays();
 
 console.log("Script loaded successfully");
